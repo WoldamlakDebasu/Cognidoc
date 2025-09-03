@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    networks:
+      - cognidocs-network
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+      - PINECONE_ENVIRONMENT=${PINECONE_ENVIRONMENT:-us-west1-gcp-free}
+      - PINECONE_INDEX_NAME=${PINECONE_INDEX_NAME:-cognidocs}
+    volumes:
+      - ./backend:/app
+      - uploaded_docs:/app/uploads
+    networks:
+      - cognidocs-network
+
+networks:
+  cognidocs-network:
+    driver: bridge
+
+volumes:
+  uploaded_docs:
+
