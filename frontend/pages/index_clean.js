@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import { useState, useCallback, useRef, useEffect } from 'react';
 
-function Home() {
+export default function Home() {
   const [documents, setDocuments] = useState([]);
   const [query, setQuery] = useState('');
   const [messages, setMessages] = useState([]);
@@ -566,5 +566,3 @@ function Home() {
     </div>
   );
 }
-
-export default Home;

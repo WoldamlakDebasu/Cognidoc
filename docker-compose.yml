@@ -1,40 +1,95 @@
 version: '3.8'
 
 services:
-  frontend:
-    build: 
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
-    depends_on:
-      - backend
-    networks:
-      - cognidocs-network
-
+  # Backend API Service
   backend:
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile
+    container_name: cognidocs-backend
+    restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - PINECONE_API_KEY=${PINECONE_API_KEY}
-      - PINECONE_ENVIRONMENT=${PINECONE_ENVIRONMENT:-us-west1-gcp-free}
-      - PINECONE_INDEX_NAME=${PINECONE_INDEX_NAME:-cognidocs}
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+      - DEMO_MODE=true
+      # Add your API keys here for production
+      # - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # - PINECONE_API_KEY=${PINECONE_API_KEY}
+      # - PINECONE_ENVIRONMENT=${PINECONE_ENVIRONMENT:-us-west1-gcp-free}
+      # - PINECONE_INDEX_NAME=${PINECONE_INDEX_NAME:-cognidocs}
     volumes:
-      - ./backend:/app
+      - backend_data:/app/data
       - uploaded_docs:/app/uploads
     networks:
       - cognidocs-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cognidocs-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - cognidocs-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: cognidocs-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - cognidocs-network
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-cognidocs123}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - full
+
+# Named volumes
+volumes:
+  backend_data:
+    driver: local
+  uploaded_docs:
+    driver: local
+  redis_data:
+    driver: local
+
+# Networks
 networks:
   cognidocs-network:
     driver: bridge
-
-volumes:
-  uploaded_docs:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
 
