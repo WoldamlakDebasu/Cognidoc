@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Import our RAG components
-from rag_engine import RAGEngine
+from backend.rag_engine import RAGEngine
 
 # Set up logging
 logging.basicConfig(
