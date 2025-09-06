@@ -8,7 +8,7 @@ from langchain_community.vectorstores import Pinecone as LangchainPinecone
 from langchain.chains import RetrievalQA
 from langchain.schema import Document
 from langchain.prompts import PromptTemplate
-from pinecone import Pinecone
+from pinecone import Pinecone as PineconeClient
 import logging
 import google.generativeai as genai
 
@@ -82,7 +82,7 @@ class RAGEngine:
         try:
             from pinecone import PodSpec
             # Initialize Pinecone client
-            pc = Pinecone(api_key=self.pinecone_api_key)
+            pc = PineconeClient(api_key=self.pinecone_api_key)
             
             # Check if index exists
             existing_indexes = [index.name for index in pc.list_indexes()]
