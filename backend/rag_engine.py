@@ -8,7 +8,7 @@ from langchain_community.vectorstores import Pinecone as LangchainPinecone
 from langchain.chains import RetrievalQA
 from langchain.schema import Document
 from langchain.prompts import PromptTemplate
-from pinecone import Pinecone as PineconeClient
+from langchain_pinecone import Pinecone as LangchainPinecone
 import logging
 import google.generativeai as genai
 
@@ -80,28 +80,24 @@ class RAGEngine:
     def _initialize_pinecone(self):
         """Initialize Pinecone vector database."""
         try:
-            from pinecone import PodSpec
-            # Initialize Pinecone client with the aliased name
-            pc = PineconeClient(api_key=self.pinecone_api_key)
+            import pinecone
+            # Initialize pinecone module with API key and environment
+            pinecone.init(api_key=self.pinecone_api_key, environment=self.pinecone_environment)
             
             # Check if index exists
-            existing_indexes = [index.name for index in pc.list_indexes()]
+            existing_indexes = pinecone.list_indexes()
             
             if self.index_name not in existing_indexes:
                 logger.info(f"Index '{self.index_name}' not found. Creating a new one...")
-                # Create a pod-based index suitable for free tier
-                pc.create_index(
+                pinecone.create_index(
                     name=self.index_name,
-                    dimension=768,  # Gemini embedding-001 dimension
+                    dimension=768,
                     metric="cosine",
-                    spec=PodSpec(
-                        environment=self.pinecone_environment
-                    )
                 )
                 logger.info(f"Created new Pinecone index: {self.index_name} in environment {self.pinecone_environment}")
             
             # Get the index using the client instance
-            index = pc.Index(self.index_name)
+            index = pinecone.Index(self.index_name)
             
             # Create LangChain Pinecone vectorstore
             self.vectorstore = LangchainPinecone(
