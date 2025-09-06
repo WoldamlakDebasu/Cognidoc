@@ -38,6 +38,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000", 
         "https://*.vercel.app",
+        "https://cognidoc-git-master-icsaddis.vercel.app",
         "https://*.app.github.dev",
         "https://*.github.dev",
         "https://musical-broccoli-px75xv4jxxr27w7p-3000.app.github.dev"
