@@ -7,6 +7,7 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGener
 from langchain.chains import RetrievalQA
 from langchain.schema import Document
 from langchain.prompts import PromptTemplate
+from langchain_pinecone import Pinecone as LangchainPinecone
 import logging
 import google.generativeai as genai
 
@@ -78,24 +79,26 @@ class RAGEngine:
     def _initialize_pinecone(self):
         """Initialize Pinecone vector database."""
         try:
-            import pinecone
-            # Initialize pinecone module with API key and environment
-            pinecone.init(api_key=self.pinecone_api_key, environment=self.pinecone_environment)
+            from pinecone import Pinecone
+            
+            # Initialize the Pinecone client
+            pc = Pinecone(
+                api_key=self.pinecone_api_key,
+                environment=self.pinecone_environment
+            )
             
             # Check if index exists
-            existing_indexes = pinecone.list_indexes()
-            
-            if self.index_name not in existing_indexes:
+            if self.index_name not in pc.list_indexes().names():
                 logger.info(f"Index '{self.index_name}' not found. Creating a new one...")
-                pinecone.create_index(
+                pc.create_index(
                     name=self.index_name,
-                    dimension=768,
+                    dimension=768,  # Ensure this matches your embedding model's dimension
                     metric="cosine",
                 )
-                logger.info(f"Created new Pinecone index: {self.index_name} in environment {self.pinecone_environment}")
+                logger.info(f"Created new Pinecone index: {self.index_name}")
             
             # Get the index using the client instance
-            index = pinecone.Index(self.index_name)
+            index = pc.Index(self.index_name)
             
             # Create LangChain Pinecone vectorstore
             self.vectorstore = LangchainPinecone(
