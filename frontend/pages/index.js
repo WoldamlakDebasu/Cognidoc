@@ -2,6 +2,7 @@ import Head from 'next/head';
 import { useState, useCallback, useRef, useEffect } from 'react';
 
 function Home() {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
   const [documents, setDocuments] = useState([]);
   const [query, setQuery] = useState('');
   const [messages, setMessages] = useState([]);
@@ -28,7 +29,7 @@ function Home() {
 
   const fetchStats = async () => {
     try {
-      const res = await fetch('http://localhost:8000/health');
+      const res = await fetch(`${API_URL}/health`);
       if (res.ok) {
         const data = await res.json();
         setStats(data);
@@ -92,7 +93,7 @@ function Home() {
     validFiles.forEach(file => formData.append('files', file));
 
     try {
-      const res = await fetch('http://localhost:8000/upload/', {
+      const res = await fetch(`${API_URL}/upload/`, {
         method: 'POST',
         body: formData,
       });
@@ -126,7 +127,7 @@ function Home() {
     setIsLoading(true);
 
     try {
-      const res = await fetch('http://localhost:8000/query/', {
+      const res = await fetch(`${API_URL}/query/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
