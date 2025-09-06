@@ -100,11 +100,8 @@ class RAGEngine:
                 )
                 logger.info(f"Created new Pinecone index: {self.index_name} in environment {self.pinecone_environment}")
             
-            # Get the index host
-            index_host = pc.describe_index(self.index_name).host
-            
             # Get the index
-            index = pc.Index(host=index_host)
+            index = pc.Index(self.index_name)
             
             # Create LangChain Pinecone vectorstore
             self.vectorstore = LangchainPinecone(
