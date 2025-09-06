@@ -4,11 +4,9 @@ from typing import List, Dict, Any, Optional
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
-from langchain_community.vectorstores import Pinecone as LangchainPinecone
 from langchain.chains import RetrievalQA
 from langchain.schema import Document
 from langchain.prompts import PromptTemplate
-from langchain_pinecone import Pinecone as LangchainPinecone
 import logging
 import google.generativeai as genai
 
