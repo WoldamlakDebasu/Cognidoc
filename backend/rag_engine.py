@@ -81,7 +81,7 @@ class RAGEngine:
         """Initialize Pinecone vector database."""
         try:
             from pinecone import PodSpec
-            # Initialize Pinecone client
+            # Initialize Pinecone client with the aliased name
             pc = PineconeClient(api_key=self.pinecone_api_key)
             
             # Check if index exists
@@ -100,7 +100,7 @@ class RAGEngine:
                 )
                 logger.info(f"Created new Pinecone index: {self.index_name} in environment {self.pinecone_environment}")
             
-            # Get the index
+            # Get the index using the client instance
             index = pc.Index(self.index_name)
             
             # Create LangChain Pinecone vectorstore
@@ -109,7 +109,7 @@ class RAGEngine:
                 embedding=self.embeddings,
                 text_key="text"
             )
-            logger.info(f"Pinecone initialized successfully. Connected to index '{self.index_name}' at {index_host}")
+            logger.info(f"Pinecone initialized successfully. Connected to index '{self.index_name}'.")
             
         except Exception as e:
             logger.error(f"Could not initialize Pinecone: {e}")
