@@ -80,6 +80,7 @@ class RAGEngine:
     def _initialize_pinecone(self):
         """Initialize Pinecone vector database."""
         try:
+            from pinecone import PodSpec
             # Initialize Pinecone client
             pc = Pinecone(api_key=self.pinecone_api_key)
             
@@ -87,21 +88,23 @@ class RAGEngine:
             existing_indexes = [index.name for index in pc.list_indexes()]
             
             if self.index_name not in existing_indexes:
+                logger.info(f"Index '{self.index_name}' not found. Creating a new one...")
+                # Create a pod-based index suitable for free tier
                 pc.create_index(
                     name=self.index_name,
                     dimension=768,  # Gemini embedding-001 dimension
                     metric="cosine",
-                    spec={
-                        "serverless": {
-                            "cloud": "aws",
-                            "region": "us-west-2"
-                        }
-                    }
+                    spec=PodSpec(
+                        environment=self.pinecone_environment
+                    )
                 )
-                logger.info(f"Created new Pinecone index: {self.index_name}")
+                logger.info(f"Created new Pinecone index: {self.index_name} in environment {self.pinecone_environment}")
+            
+            # Get the index host
+            index_host = pc.describe_index(self.index_name).host
             
             # Get the index
-            index = pc.Index(self.index_name)
+            index = pc.Index(host=index_host)
             
             # Create LangChain Pinecone vectorstore
             self.vectorstore = LangchainPinecone(
@@ -109,7 +112,7 @@ class RAGEngine:
                 embedding=self.embeddings,
                 text_key="text"
             )
-            logger.info("Pinecone initialized successfully")
+            logger.info(f"Pinecone initialized successfully. Connected to index '{self.index_name}' at {index_host}")
             
         except Exception as e:
             logger.error(f"Could not initialize Pinecone: {e}")
